@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="tr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>HTML5 Accordion Ad</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            body {
+                font-family: 'Source Sans Pro', sans-serif;
+            }
+            
+            .bg-custom-dark-blue {
+                background-color: #0c2e4e; 
+            }
+            .text-custom-light-beige {
+                color: #d5dc36; 
+            }
+            .bg-custom-light-beige {
+                background-color: #50b0d7; 
+            }
+
+            @keyframes bounce-pulse {
+                0%, 100% {
+                    transform: translateY(0) scale(1);
+                }
+                50% {
+                    transform: translateY(-5px) scale(1.1);
+                }
+                75% {
+                    transform: translateY(0) scale(1.15);
+                }
+            }
+            
+            @keyframes flash {
+                0% {
+                    opacity: 0;
+                }
+                50% {
+                    opacity: 1;
+                }
+                100% {
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .ad-container {
+                width: 970px;
+                height: 250px;
+                overflow: hidden;
+            }
+
+            .static-panel {
+                flex-shrink: 0;
+                transition: width 0.5s ease-in-out;
+            }
+
+            .accordion-panel {
+                flex-shrink: 0;
+                transition: width 0.5s ease-in-out, transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+                transform: scale(1);
+                z-index: 0;
+            }
+            .accordion-panel:not(.expanded)::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background-color: transparent;
+                opacity: 0;
+                z-index: 3;
+                pointer-events: none;
+                border-radius: inherit;
+                transition: opacity 0.3s ease-in-out;
+            }
+
+            .accordion-panel[data-theme="black"] { background-color: #0c2e4e; }
+            .accordion-panel[data-theme="black"]:not(.expanded):hover { background-color: #1a426f; }
+
+            .accordion-panel[data-theme="light-beige"] { background-color: #50b0d7; }
+            .accordion-panel[data-theme="light-beige"]:not(.expanded):hover { background-color: #69c4e8; }
+
+            .accordion-panel:not(.expanded):hover {
+                transform: scale(1.03);
+                z-index: 1;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .accordion-panel.expanded {
+                cursor: default;
+                transform: scale(1);
+                z-index: 2;
+            }
+            
+            #panel1 .background-image { background-image: url('https://www.tivibu.com.tr/uploads/Packages/aile_B44DEB3F-7BB6-4755-B744-218BD272441E.webp'); }
+            #panel2 .background-image { background-image: url('https://www.tivibu.com.tr/uploads/Packages/ev-uydu-sinema_A4DA2775-0233-41AD-B905-DDBCFAF1C8B6.webp'); }
+            #panel3 .background-image { background-image: url('https://www.tivibu.com.tr/uploads/Packages/superpaket2025_D3A7D182-9182-4092-8AEC-F0F5841725FD.webp'); }
+            
+            .panel-layer {
+                position: absolute;
+                inset: 0;
+                background-size: cover;
+                background-position: center;
+                transition: opacity 0.5s ease-in-out;
+            }
+
+            /* Varsayılan kısa görünümdeki filtre opaklığı %90'a ayarlı (Daha opak/mat) */
+            .accordion-panel[data-theme="black"] .color-overlay { background-color: rgba(12, 46, 78, 0.9); }
+            .accordion-panel[data-theme="light-beige"] .color-overlay { background-color: rgba(80, 176, 215, 0.9); }
+
+            /* Genişletilmiş paneldeki filtre opaklığı tamamen kaldırıldı */
+            .accordion-panel.expanded .color-overlay {
+                opacity: 0; 
+            }
+
+            /* Kısa görünümdeki hover filtre opaklığı %50'ye ayarlı */
+            .accordion-panel:not(.expanded):hover .color-overlay {
+                background-color: rgba(0, 0, 0, 0.5);
+            }
+            .accordion-panel[data-theme="light-beige"]:not(.expanded):hover .color-overlay {
+                background-color: rgba(80, 176, 215, 0.5);
+            }
+
+            .placeholder-content {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+                width: 100%;
+                text-align: center;
+                position: relative;
+                z-index: 1;
+                padding: 5px;
+                transition: all 0.3s ease-in-out;
+            }
+
+            .short-display {
+                opacity: 1;
+                transition: opacity 0.3s ease-in-out;
+                height: 100%;
+                width: 100%;
+                position: relative;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .text-box-overlay {
+                background-color: rgba(0, 0, 0, 0.4);
+                padding: 8px;
+                border-radius: 8px;
+            }
+            
+            .expanded-details {
+                opacity: 0;
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                padding: 10px;
+                box-sizing: border-box;
+                
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                align-items: center;
+                
+                transition: opacity 0.3s ease-in-out;
+                pointer-events: none;
+                overflow: hidden;
+                gap: 5px;
+            }
+
+            .accordion-panel.expanded .short-display {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .accordion-panel.expanded .expanded-details {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            .short-display h3 {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(270deg);
+                transform-origin: center center;
+                
+                white-space: normal;
+                width: 240px;
+                height: auto;
+                max-height: 100px;
+                text-align: center;
+                line-height: 1.2;
+                font-size: 1.5rem;
+                overflow: hidden;
+                color: #d5dc36 !important; 
+            }
+            
+            .expanded-details h3 {
+                font-size: 1.75rem;
+                font-weight: bold;
+                text-align: center;
+                width: 100%;
+                margin-top: 10px; 
+            }
+            
+            .accordion-panel[data-theme="light-beige"] .expanded-details h3 {
+                color: #d5dc36;
+            }
+            .accordion-panel[data-theme="light-beige"] .expanded-details p {
+                color: #0c2e4e; 
+            }
+            .accordion-panel[data-theme="black"] .expanded-details h3 {
+                color: #d5dc36;
+            }
+            .accordion-panel[data-theme="black"] .expanded-details p {
+                color: #50b0d7; 
+            }
+            
+            .action-button {
+                padding: 8px 24px;
+                margin-top: 10px;
+                margin-bottom: 0px; 
+                border-radius: 5px;
+                font-weight: bold;
+                transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.2s ease-in-out;
+                text-decoration: none;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                align-self: center;
+                animation: pulse 0.7s infinite alternate;
+                
+                background-color: #d5dc36;
+                color: #0c2e4e; 
+            }
+
+            .action-button:hover {
+                transform: scale(1.05);
+                
+                background-color: #50b0d7;
+                color: #0c2e4e;
+                outline: 2px solid #0c2e4e;
+            }
+
+            .short-display .click-icon {
+                position: absolute;
+                bottom: 5px;
+                right: 5px;
+                width: 40px;
+                height: 40px;
+                transition: opacity 0.3s ease-in-out;
+                animation: bounce-pulse 2s infinite alternate;
+                
+                filter: brightness(0) invert(1) !important;
+            }
+            
+            .accordion-panel:not(.expanded):hover .click-icon {
+                animation: flash 0.3s ease-out;
+            }
+            
+            .ad-container.icons-hidden .click-icon {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .static-expanded-content {
+                opacity: 1;
+                pointer-events: all;
+                transition: opacity 0.5s ease-in-out;
+                height: 100%;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            
+            .static-visual-container {
+                position: absolute;
+                top: 50%; 
+                left: 0;
+                width: 100%;
+                height: auto; 
+                overflow: hidden;
+                transform: translateY(-50%); 
+            }
+
+            .static-visual-container img {
+                width: 100%; 
+                height: auto; 
+                display: block;
+            }
+
+            .static-shortened-content {
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.5s ease-in-out;
+                height: 100%;
+                width: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                overflow: hidden;
+                background-color: #0c2e4e;
+            }
+
+            .static-panel.is-shortened .static-expanded-content {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .static-panel.is-shortened .static-shortened-content {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            .static-shortened-content .logo svg,
+            .static-expanded-content .logo svg {
+                width: 97px; 
+                height: 40px;
+                display: block;
+            }
+
+            .static-shortened-content .action-button {
+                width: 100px;
+            }
+
+            .static-expanded-content .logo {
+                width: 100px;
+                height: auto;
+                display: block;
+            }
+            
+            .static-expanded-content .flex-content-wrapper {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+            
+            #static-display .static-expanded-content .flex-content-wrapper {
+                color: white;
+                text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            }
+            
+            .slogan-subtitle {
+                font-size: 1rem;
+                font-weight: 900;
+                letter-spacing: -0.025em;
+                line-height: 1;
+            }
+            .slogan-title {
+                font-size: 1.25rem;
+                font-weight: 900;
+                text-transform: uppercase;
+                color: #d5dc36;
+                text-shadow: 0 0 10px rgba(213, 220, 54, 0.9);
+            }
+            .brand-desc {
+                font-size: 0.875rem;
+            }
+            
+            .expanded-details .text-box-overlay {
+                 background-color: rgba(0, 0, 0, 0.7);
+                 width: auto;
+                 max-width: 85%;
+                 padding: 5px 15px;
+                 align-self: center;
+            }
+        </style>
+    </head>
+    <body class="flex items-center justify-center min-h-screen bg-gray-100 p-4 antialiased">
+
+        <div class="ad-container flex bg-white shadow-xl rounded-lg overflow-hidden">
+
+            <div id="static-display" class="static-panel h-full text-black flex flex-col rounded-l-lg overflow-hidden relative" style="width: 323px;">
+                
+                <div class="static-expanded-content">
+                    
+                    <div class="static-visual-container">
+                        <img src="https://www.tivibu.com.tr/assets/img/hemenbasvur_bg.webp" alt="Tivibu görseli">
+                    </div>
+                    
+                    <div class="absolute inset-0 bg-black opacity-50"></div>
+                    
+                    <div class="relative z-10 flex-content-wrapper">
+                        <a href="https://www.nomaddigital.com.tr/" target="_blank" class="logo">
+                        </a>  
+                        <svg width="97" height="40" viewBox="0 0 97 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo mb-2">
+                            <path d="M15.8673 21.3969V26.5696L17.6021 26.563V39.6714H24.4887V21.3969H15.8673Z" fill="white"></path>
+                            <path d="M38.723 21.3969L36.0529 30.5419L33.3554 21.3969H26.4896L32.3248 39.6714H39.6561L45.5603 21.3969H38.723Z" fill="white"></path>
+                            <path d="M47.1078 21.3969V26.5696L48.8459 26.563V39.6714H55.7293V21.3969H47.1078Z" fill="white"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M73.1548 21.7818C74.2143 22.2897 75.1356 23.0459 75.8404 23.986C77.1766 25.9268 77.858 28.2436 77.7855 30.5988C77.7855 35.1439 75.6072 39.9989 69.4916 39.9989C68.6006 40.0445 67.7095 39.9119 66.8705 39.609C66.0314 39.306 65.2611 38.8388 64.6048 38.2345L64.5971 39.6714H58.5034V14.4972H65.3868V22.3826C66.6612 21.4816 68.1944 21.0203 69.7544 21.0684C70.9288 21.0291 72.0952 21.2739 73.1548 21.7818ZM68.2594 34.4123C70.21 34.4123 70.9044 32.3555 70.9044 30.5966C70.9044 28.6899 70.2067 26.6539 68.2594 26.6539C65.7733 26.6539 65.585 29.6712 65.585 30.5966C65.585 33.4113 66.966 34.4145 68.2594 34.4123Z" fill="white"></path>
+                            <path d="M89.9543 21.3969V32.5165C89.9543 33.2273 89.7418 34.4145 88.3213 34.4145C87.3433 34.4145 86.8472 33.8986 86.8472 32.8812V21.3969H79.9639V32.6841C79.9639 38.7274 83.4477 39.9967 86.3686 39.9967C87.2315 40.0198 88.0892 39.8564 88.8831 39.5175C89.677 39.1785 90.3883 38.6722 90.9684 38.033V39.6758H96.8409V21.3969H89.9543Z" fill="white"></path>
+                            <path d="M24.5697 17.1618L18.3271 13.6878V20.6347L24.5697 17.1618Z" fill="#D7DF23"></path>
+                            <path d="M51.7 14.5026H49.4034V20.2722H51.7V14.5026Z" fill="#EF4130"></path>
+                            <path d="M55.7227 14.5026H53.4272V20.2722H55.7227V14.5026Z" fill="#EF4130"></path>
+                            <path d="M13.2727 33.9008L12.2695 34.2009C11.544 34.4481 10.7892 34.5987 10.0244 34.6489C9.54248 34.6489 9.10878 34.558 9.10878 33.4693V26.632H13.2705V21.3958H9.10878V16.4959H2.31854L2.33168 21.3958H0.0481873V26.632H2.22764V33.5996C2.22764 37.7702 4.40708 39.9704 8.53051 39.9704C10.1441 39.9713 11.7467 39.7041 13.2727 39.1797V33.9008Z" fill="white"></path>
+                            <path d="M54.9353 0L54.9681 9.07921C54.9681 9.53153 55.2375 9.73633 55.7063 9.73633C55.8744 9.72564 56.0416 9.70369 56.2068 9.67062L56.2123 11.2806C55.7391 11.3778 55.2582 11.4328 54.7754 11.4448C53.7897 11.4448 52.8675 11.0769 52.862 9.22925L52.8303 1.18501L54.9353 0Z" fill="white"></path>
+                            <path d="M26.2125 0.071188L26.241 6.81434L28.9352 3.22427L31.4542 3.2166L28.2485 7.04214L31.3446 11.3441L28.9856 11.3518L27.0361 8.53161L26.2563 9.40777L26.264 11.3594L24.1546 11.3671L24.1163 1.26496L26.2125 0.071188Z" fill="white"></path>
+                            <path d="M68.7906 0.08214L68.818 6.82529L71.5155 3.23413L74.0345 3.22646L70.8288 7.05309L73.9249 11.3528L71.5593 11.3627L69.6142 8.54037L68.8333 9.41653L68.841 11.3704L66.7328 11.378L66.6966 1.27591L68.7906 0.08214Z" fill="white"></path>
+                            <path d="M86.5033 3.24727L86.8516 4.32495C87.0873 3.94247 87.4174 3.62705 87.8102 3.40898C88.203 3.1909 88.6453 3.07751 89.0946 3.0797C89.5688 3.07629 90.0338 3.21122 90.4326 3.46798C90.8313 3.72475 91.1466 4.0922 91.3397 4.52537C91.5915 4.05808 91.9712 3.67224 92.4344 3.41309C92.8976 3.15394 93.4251 3.03221 93.9551 3.06218C95.6296 3.0567 96.8661 4.0851 96.8749 6.44416L96.8935 11.3353L94.783 11.343L94.7677 6.30945C94.7677 5.48476 94.4391 4.76522 93.4535 4.7696C92.4086 4.7696 91.953 5.60304 91.9563 6.66539L91.9749 11.3518L89.8689 11.3594L89.8393 6.21745C89.8622 6.03492 89.8452 5.8496 89.7896 5.67424C89.734 5.49888 89.6411 5.33764 89.5173 5.20162C89.3934 5.0656 89.2416 4.95801 89.0722 4.88627C88.9028 4.81453 88.7199 4.78033 88.536 4.78603C87.4879 4.78603 87.0224 5.61947 87.0268 6.66648L87.0454 11.3758L84.9405 11.3791L84.9109 3.25165L86.5033 3.24727Z" fill="white"></path>
+                            <path d="M44.1541 0.357035L44.1618 2.18383L41.4073 2.19588L41.4413 11.309L39.2509 11.3189L39.2202 2.20354L36.4636 2.2134L36.4581 0.38551L44.1541 0.357035Z" fill="white"></path>
+                            <path d="M19.7968 3.25822V4.45528C20.2897 3.4225 21.0574 3.17499 22.4932 3.16951L22.4998 5.23068H22.2348C21.9089 5.19675 21.5796 5.23778 21.2721 5.35063C20.9645 5.46347 20.6868 5.64515 20.4602 5.88177C20.2337 6.11839 20.0642 6.40368 19.9648 6.71584C19.8654 7.028 19.8386 7.35876 19.8867 7.68283L19.8976 11.3835L17.7882 11.3923L17.7576 3.26698L19.7968 3.25822Z" fill="white"></path>
+                            <path d="M7.70035 0.49065L7.70583 2.31963L4.94811 2.3284L4.98207 11.4427L2.79167 11.4503L2.75881 2.33935L0.005476 2.34701L0 0.520221L7.70035 0.49065Z" fill="white"></path>
+                            <path d="M13.8346 11.3988L13.5181 10.4132C13.298 10.783 12.9798 11.0847 12.5988 11.2847C12.2178 11.4848 11.7888 11.5755 11.3594 11.5467C10.9522 11.575 10.5437 11.5142 10.1623 11.3686C9.78095 11.223 9.43588 10.9961 9.15111 10.7036C8.86634 10.4111 8.64871 10.0601 8.51336 9.675C8.378 9.28988 8.32817 8.8799 8.36733 8.47357L8.3531 4.35233L10.4701 4.34466L10.4855 8.47685C10.4855 9.53043 11.0604 9.99808 11.7997 9.99589C12.0237 9.99081 12.2441 9.93888 12.4468 9.84345C12.6495 9.74801 12.8299 9.61119 12.9765 9.44178C13.1231 9.27238 13.2326 9.07415 13.298 8.85985C13.3633 8.64556 13.3831 8.41996 13.356 8.19757L13.3428 4.3348L15.4226 4.32714L15.4467 11.3912L13.8346 11.3988Z" fill="white"></path>
+                            <path d="M9.10659 1.44785L11.2149 1.44019L11.2214 3.09504L9.11207 3.1027L9.10659 1.44785Z" fill="white"></path>
+                            <path d="M12.5379 1.43362L14.6461 1.42595L14.6516 3.08189L12.5433 3.08956L12.5379 1.43362Z" fill="white"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M65.16 6.96986C65.1502 4.51442 63.7209 2.94281 61.3466 2.94938C60.7826 2.92702 60.2202 3.02271 59.6954 3.23032C59.1706 3.43793 58.6949 3.75288 58.2989 4.15499C57.9029 4.5571 57.5952 5.0375 57.3956 5.56542C57.196 6.09334 57.1089 6.65712 57.1399 7.22066C57.1476 9.70348 58.9218 11.4021 61.6861 11.3923C62.7575 11.3924 63.8149 11.1482 64.7778 10.6782L64.0572 9.14493C63.3262 9.48279 62.5318 9.66124 61.7266 9.66843C61.1679 9.73617 60.6053 9.5794 60.1621 9.23257C59.719 8.88574 59.4316 8.37719 59.3631 7.81864L65.1151 7.79783C65.1462 7.52295 65.1612 7.24649 65.16 6.96986ZM63.0382 5.73066C63.1132 5.94395 63.1424 6.17063 63.1241 6.39597L59.3248 6.4124C59.3847 5.89716 59.6429 5.42549 60.0446 5.09736C60.4463 4.76923 60.9601 4.61042 61.4769 4.6546C61.7029 4.64878 61.9276 4.6906 62.1364 4.77733C62.3452 4.86407 62.5334 4.99377 62.6887 5.15802C62.8441 5.32227 62.9632 5.51738 63.0382 5.73066Z" fill="white"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M51.2488 7.02133C51.2411 4.5637 49.8119 2.99099 47.4375 3.00085C46.8741 2.9777 46.3121 3.07261 45.7876 3.27949C45.263 3.48636 44.7876 3.80063 44.3916 4.20211C43.9957 4.6036 43.6881 5.08343 43.4886 5.61081C43.2891 6.13819 43.202 6.70146 43.233 7.26446C43.2429 9.75166 45.0127 11.4503 47.7803 11.4427C48.8518 11.441 49.909 11.196 50.8721 10.7264L50.1492 9.19311C49.4195 9.53121 48.6262 9.7104 47.8219 9.71881C47.2626 9.7863 46.6992 9.62943 46.2553 9.28254C45.8113 8.93566 45.5228 8.427 45.453 7.86792L51.2061 7.84602C51.2354 7.57211 51.2497 7.2968 51.2488 7.02133ZM49.1303 5.78154C49.205 5.99509 49.2339 6.22199 49.215 6.44745L45.4169 6.46168C45.4768 5.94644 45.7349 5.47478 46.1367 5.14664C46.5384 4.81851 47.0521 4.65971 47.5689 4.70389C47.7951 4.69802 48.02 4.73989 48.2289 4.82677C48.4378 4.91364 48.626 5.04357 48.7813 5.20808C48.9366 5.37259 49.0555 5.56799 49.1303 5.78154Z" fill="white"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M76.2346 3.27022C76.9905 2.76073 77.8805 2.48672 78.792 2.48282C79.3982 2.48037 79.9989 2.59745 80.5598 2.82737C81.1207 3.05729 81.6308 3.39554 82.0609 3.82276C82.4909 4.24998 82.8326 4.75779 83.0662 5.31716C83.2999 5.87653 83.4209 6.47646 83.4225 7.08266C83.4247 7.99421 83.1566 8.88595 82.6521 9.6452C82.1477 10.4044 81.4295 10.9971 80.5883 11.3484C79.7471 11.6996 78.8207 11.7936 77.9261 11.6185C77.0316 11.4434 76.209 11.0071 75.5622 10.3647C74.9155 9.72229 74.4738 8.90259 74.2928 8.00919C74.1117 7.11579 74.1996 6.18878 74.5452 5.3453C74.8909 4.50181 75.4788 3.7797 76.2346 3.27022ZM77.3621 9.27695C77.7937 9.5632 77.3004 9.71506 78.8183 9.71333C79.5128 9.71043 80.1778 9.43198 80.6671 8.93914C81.1565 8.4463 81.4302 7.77937 81.4281 7.08485C81.4262 6.56699 81.2707 6.06133 80.9814 5.63181C80.6921 5.20229 80.2819 4.8682 79.8028 4.67178C79.3236 4.47535 78.797 4.42541 78.2894 4.52827C77.7819 4.63114 77.3162 4.88218 76.9513 5.24967C76.5864 5.61715 76.3387 6.08458 76.2395 6.59285C76.1402 7.10111 76.1939 7.6274 76.3937 8.10516C76.5935 8.58292 76.9305 8.9907 77.3621 9.27695Z" fill="white"></path>
+                        </svg>                             
+                        <div class="flex flex-col items-center mt-1 mb-2">
+                            <div class="slogan-subtitle text-gray-200">
+                                Tivibu Deneyimi ve Uygulama Dünyası
+                            </div>
+                            <div class="slogan-title">
+                                BİR ARADA!
+                            </div>
+                        </div>
+                        
+                        <p class="brand-desc mb-2">İnternetin olduğu her yerde, yeni nesil TV keyfi yanınızda.</p>
+
+                        <a href="https://www.nomaddigital.com.tr/" target="_blank" class="action-button">Keşfet!</a>
+                    </div>
+                </div>
+
+                <div class="static-shortened-content">
+                    <a href="https://www.nomaddigital.com.tr/" target="_blank" class="flex flex-col items-center justify-center">
+                    </a>
+                    <svg width="97" height="40" viewBox="0 0 97 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo mb-2">
+                        <path d="M15.8673 21.3969V26.5696L17.6021 26.563V39.6714H24.4887V21.3969H15.8673Z" fill="white"></path>
+                        <path d="M38.723 21.3969L36.0529 30.5419L33.3554 21.3969H26.4896L32.3248 39.6714H39.6561L45.5603 21.3969H38.723Z" fill="white"></path>
+                        <path d="M47.1078 21.3969V26.5696L48.8459 26.563V39.6714H55.7293V21.3969H47.1078Z" fill="white"></path>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M73.1548 21.7818C74.2143 22.2897 75.1356 23.0459 75.8404 23.986C77.1766 25.9268 77.858 28.2436 77.7855 30.5988C77.7855 35.1439 75.6072 39.9989 69.4916 39.9989C68.6006 40.0445 67.7095 39.9119 66.8705 39.609C66.0314 39.306 65.2611 38.8388 64.6048 38.2345L64.5971 39.6714H58.5034V14.4972H65.3868V22.3826C66.6612 21.4816 68.1944 21.0203 69.7544 21.0684C70.9288 21.0291 72.0952 21.2739 73.1548 21.7818ZM68.2594 34.4123C70.21 34.4123 70.9044 32.3555 70.9044 30.5966C70.9044 28.6899 70.2067 26.6539 68.2594 26.6539C65.7733 26.6539 65.585 29.6712 65.585 30.5966C65.585 33.4113 66.966 34.4145 68.2594 34.4123Z" fill="white"></path>
+                        <path d="M89.9543 21.3969V32.5165C89.9543 33.2273 89.7418 34.4145 88.3213 34.4145C87.3433 34.4145 86.8472 33.8986 86.8472 32.8812V21.3969H79.9639V32.6841C79.9639 38.7274 83.4477 39.9967 86.3686 39.9967C87.2315 40.0198 88.0892 39.8564 88.8831 39.5175C89.677 39.1785 90.3883 38.6722 90.9684 38.033V39.6758H96.8409V21.3969H89.9543Z" fill="white"></path>
+                        <path d="M24.5697 17.1618L18.3271 13.6878V20.6347L24.5697 17.1618Z" fill="#D7DF23"></path>
+                        <path d="M51.7 14.5026H49.4034V20.2722H51.7V14.5026Z" fill="#EF4130"></path>
+                        <path d="M55.7227 14.5026H53.4272V20.2722H55.7227V14.5026Z" fill="#EF4130"></path>
+                        <path d="M13.2727 33.9008L12.2695 34.2009C11.544 34.4481 10.7892 34.5987 10.0244 34.6489C9.54248 34.6489 9.10878 34.558 9.10878 33.4693V26.632H13.2705V21.3958H9.10878V16.4959H2.31854L2.33168 21.3958H0.0481873V26.632H2.22764V33.5996C2.22764 37.7702 4.40708 39.9704 8.53051 39.9704C10.1441 39.9713 11.7467 39.7041 13.2727 39.1797V33.9008Z" fill="white"></path>
+                        <path d="M54.9353 0L54.9681 9.07921C54.9681 9.53153 55.2375 9.73633 55.7063 9.73633C55.8744 9.72564 56.0416 9.70369 56.2068 9.67062L56.2123 11.2806C55.7391 11.3778 55.2582 11.4328 54.7754 11.4448C53.7897 11.4448 52.8675 11.0769 52.862 9.22925L52.8303 1.18501L54.9353 0Z" fill="white"></path>
+                        <path d="M26.2125 0.071188L26.241 6.81434L28.9352 3.22427L31.4542 3.2166L28.2485 7.04214L31.3446 11.3441L28.9856 11.3518L27.0361 8.53161L26.2563 9.40777L26.264 11.3594L24.1546 11.3671L24.1163 1.26496L26.2125 0.071188Z" fill="white"></path>
+                        <path d="M68.7906 0.08214L68.818 6.82529L71.5155 3.23413L74.0345 3.22646L70.8288 7.05309L73.9249 11.3528L71.5593 11.3627L69.6142 8.54037L68.8333 9.41653L68.841 11.3704L66.7328 11.378L66.6966 1.27591L68.7906 0.08214Z" fill="white"></path>
+                        <path d="M86.5033 3.24727L86.8516 4.32495C87.0873 3.94247 87.4174 3.62705 87.8102 3.40898C88.203 3.1909 88.6453 3.07751 89.0946 3.0797C89.5688 3.07629 90.0338 3.21122 90.4326 3.46798C90.8313 3.72475 91.1466 4.0922 91.3397 4.52537C91.5915 4.05808 91.9712 3.67224 92.4344 3.41309C92.8976 3.15394 93.4251 3.03221 93.9551 3.06218C95.6296 3.0567 96.8661 4.0851 96.8749 6.44416L96.8935 11.3353L94.783 11.343L94.7677 6.30945C94.7677 5.48476 94.4391 4.76522 93.4535 4.7696C92.4086 4.7696 91.953 5.60304 91.9563 6.66539L91.9749 11.3518L89.8689 11.3594L89.8393 6.21745C89.8622 6.03492 89.8452 5.8496 89.7896 5.67424C89.734 5.49888 89.6411 5.33764 89.5173 5.20162C89.3934 5.0656 89.2416 4.95801 89.0722 4.88627C88.9028 4.81453 88.7199 4.78033 88.536 4.78603C87.4879 4.78603 87.0224 5.61947 87.0268 6.66648L87.0454 11.3758L84.9405 11.3791L84.9109 3.25165L86.5033 3.24727Z" fill="white"></path>
+                        <path d="M44.1541 0.357035L44.1618 2.18383L41.4073 2.19588L41.4413 11.309L39.2509 11.3189L39.2202 2.20354L36.4636 2.2134L36.4581 0.38551L44.1541 0.357035Z" fill="white"></path>
+                        <path d="M19.7968 3.25822V4.45528C20.2897 3.4225 21.0574 3.17499 22.4932 3.16951L22.4998 5.23068H22.2348C21.9089 5.19675 21.5796 5.23778 21.2721 5.35063C20.9645 5.46347 20.6868 5.64515 20.4602 5.88177C20.2337 6.11839 20.0642 6.40368 19.9648 6.71584C19.8654 7.028 19.8386 7.35876 19.8867 7.68283L19.8976 11.3835L17.7882 11.3923L17.7576 3.26698L19.7968 3.25822Z" fill="white"></path>
+                        <path d="M7.70035 0.49065L7.70583 2.31963L4.94811 2.3284L4.98207 11.4427L2.79167 11.4503L2.75881 2.33935L0.005476 2.34701L0 0.520221L7.70035 0.49065Z" fill="white"></path>
+                        <path d="M13.8346 11.3988L13.5181 10.4132C13.298 10.783 12.9798 11.0847 12.5988 11.2847C12.2178 11.4848 11.7888 11.5755 11.3594 11.5467C10.9522 11.575 10.5437 11.5142 10.1623 11.3686C9.78095 11.223 9.43588 10.9961 9.15111 10.7036C8.86634 10.4111 8.64871 10.0601 8.51336 9.675C8.378 9.28988 8.32817 8.8799 8.36733 8.47357L8.3531 4.35233L10.4701 4.34466L10.4855 8.47685C10.4855 9.53043 11.0604 9.99808 11.7997 9.99589C12.0237 9.99081 12.2441 9.93888 12.4468 9.84345C12.6495 9.74801 12.8299 9.61119 12.9765 9.44178C13.1231 9.27238 13.2326 9.07415 13.298 8.85985C13.3633 8.64556 13.3831 8.41996 13.356 8.19757L13.3428 4.3348L15.4226 4.32714L15.4467 11.3912L13.8346 11.3988Z" fill="white"></path>
+                        <path d="M9.10659 1.44785L11.2149 1.44019L11.2214 3.09504L9.11207 3.1027L9.10659 1.44785Z" fill="white"></path>
+                        <path d="M12.5379 1.43362L14.6461 1.42595L14.6516 3.08189L12.5433 3.08956L12.5379 1.43362Z" fill="white"></path>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M65.16 6.96986C65.1502 4.51442 63.7209 2.94281 61.3466 2.94938C60.7826 2.92702 60.2202 3.02271 59.6954 3.23032C59.1706 3.43793 58.6949 3.75288 58.2989 4.15499C57.9029 4.5571 57.5952 5.0375 57.3956 5.56542C57.196 6.09334 57.1089 6.65712 57.1399 7.22066C57.1476 9.70348 58.9218 11.4021 61.6861 11.3923C62.7575 11.3924 63.8149 11.1482 64.7778 10.6782L64.0572 9.14493C63.3262 9.48279 62.5318 9.66124 61.7266 9.66843C61.1679 9.73617 60.6053 9.5794 60.1621 9.23257C59.719 8.88574 59.4316 8.37719 59.3631 7.81864L65.1151 7.79783C65.1462 7.52295 65.1612 7.24649 65.16 6.96986ZM63.0382 5.73066C63.1132 5.94395 63.1424 6.17063 63.1241 6.39597L59.3248 6.4124C59.3847 5.89716 59.6429 5.42549 60.0446 5.09736C60.4463 4.76923 60.9601 4.61042 61.4769 4.6546C61.7029 4.64878 61.9276 4.6906 62.1364 4.77733C62.3452 4.86407 62.5334 4.99377 62.6887 5.15802C62.8441 5.32227 62.9632 5.51738 63.0382 5.73066Z" fill="white"></path>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M51.2488 7.02133C51.2411 4.5637 49.8119 2.99099 47.4375 3.00085C46.8741 2.9777 46.3121 3.07261 45.7876 3.27949C45.263 3.48636 44.7876 3.80063 44.3916 4.20211C43.9957 4.6036 43.6881 5.08343 43.4886 5.61081C43.2891 6.13819 43.202 6.70146 43.233 7.26446C43.2429 9.75166 45.0127 11.4503 47.7803 11.4427C48.8518 11.441 49.909 11.196 50.8721 10.7264L50.1492 9.19311C49.4195 9.53121 48.6262 9.7104 47.8219 9.71881C47.2626 9.7863 46.6992 9.62943 46.2553 9.28254C45.8113 8.93566 45.5228 8.427 45.453 7.86792L51.2061 7.84602C51.2354 7.57211 51.2497 7.2968 51.2488 7.02133ZM49.1303 5.78154C49.205 5.99509 49.2339 6.22199 49.215 6.44745L45.4169 6.46168C45.4768 5.94644 45.7349 5.47478 46.1367 5.14664C46.5384 4.81851 47.0521 4.65971 47.5689 4.70389C47.7951 4.69802 48.02 4.73989 48.2289 4.82677C48.4378 4.91364 48.626 5.04357 48.7813 5.20808C48.9366 5.37259 49.0555 5.56799 49.1303 5.78154Z" fill="white"></path>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M76.2346 3.27022C76.9905 2.76073 77.8805 2.48672 78.792 2.48282C79.3982 2.48037 79.9989 2.59745 80.5598 2.82737C81.1207 3.05729 81.6308 3.39554 82.0609 3.82276C82.4909 4.24998 82.8326 4.75779 83.0662 5.31716C83.2999 5.87653 83.4209 6.47646 83.4225 7.08266C83.4247 7.99421 83.1566 8.88595 82.6521 9.6452C82.1477 10.4044 81.4295 10.9971 80.5883 11.3484C79.7471 11.6996 78.8207 11.7936 77.9261 11.6185C77.0316 11.4434 76.209 11.0071 75.5622 10.3647C74.9155 9.72229 74.4738 8.90259 74.2928 8.00919C74.1117 7.11579 74.1996 6.18878 74.5452 5.3453C74.8909 4.50181 75.4788 3.7797 76.2346 3.27022ZM77.3621 9.27695C77.7937 9.5632 77.3004 9.71506 78.8183 9.71333C79.5128 9.71043 80.1778 9.43198 80.6671 8.93914C81.1565 8.4463 81.4302 7.77937 81.4281 7.08485C81.4262 6.56699 81.2707 6.06133 80.9814 5.63181C80.6921 5.20229 80.2819 4.8682 79.8028 4.67178C79.3236 4.47535 78.797 4.42541 78.2894 4.52827C77.7819 4.63114 77.3162 4.88218 76.9513 5.24967C76.5864 5.61715 76.3387 6.08458 76.2395 6.59285C76.1402 7.10111 76.1939 7.6274 76.3937 8.10516C76.5935 8.58292 76.9305 8.9907 77.3621 9.27695Z" fill="white"></path>
+                    </svg>                         
+                    <a href="https://www.nomaddigital.com.tr/" target="_blank" class="action-button">Keşfet!</a>
+                </div>
+            </div>
+
+            <div id="panel1" class="accordion-panel flex-grow h-full relative" data-theme="light-beige">
+                <div class="panel-layer background-image"></div>
+                <div class="panel-layer color-overlay"></div>
+                <div class="placeholder-content text-black">
+                    <div class="short-display">
+                        <div class="text-box-overlay">
+                            <h3 class="text-xl font-bold">AİLE PAKETİ</h3>
+                        </div>
+                        <img src="https://nomad-digital.squarespace.com/s/Hand_Click.png" alt="Tıklama ikonu" class="click-icon">
+                    </div>
+                    <div class="expanded-details">
+                        <a href="https://www.tivibu.com.tr/kampanyalar" target="_blank" class="action-button">Hemen Başvur!</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel2" class="accordion-panel flex-grow h-full relative" data-theme="black">
+                <div class="panel-layer background-image"></div>
+                <div class="panel-layer color-overlay"></div>
+                <div class="placeholder-content text-white">
+                    <div class="short-display">
+                        <div class="text-box-overlay">
+                            <h3 class="text-xl font-bold">SİNEMA PAKETİ</h3>
+                        </div>
+                        <img src="https://nomad-digital.squarespace.com/s/Hand_Click.png" alt="Tıklama ikonu" class="click-icon">
+                    </div>
+                    <div class="expanded-details">
+                        <a href="https://www.tivibu.com.tr/kampanyalar" target="_blank" class="action-button">Hemen Başvur!</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel3" class="accordion-panel flex-grow h-full relative" data-theme="light-beige">
+                <div class="panel-layer background-image"></div>
+                <div class="panel-layer color-overlay"></div>
+                <div class="placeholder-content text-black">
+                    <div class="short-display">
+                        <div class="text-box-overlay">
+                            <h3 class="text-xl font-bold">SÜPER PAKET</h3>
+                        </div>
+                        <img src="https://nomad-digital.squarespace.com/s/Hand_Click.png" alt="Tıklama ikonu" class="click-icon">
+                    </div>
+                    <div class="expanded-details">
+                        <a href="https://www.tivibu.com.tr/kampanyalar" target="_blank" class="action-button">Hemen Başvur!</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const staticDisplay = document.getElementById('static-display');
+                const panels = document.querySelectorAll('.accordion-panel');
+                
+                const adContainerWidth = 970;
+
+                const initialStaticImageWidth = 323;
+                const shortenedStaticImageWidth = 150;
+                const expandedPanelWidth = 444;
+
+                const totalInteractivePanelCount = 3;
+
+                const initialInteractivePanelWidth = (adContainerWidth - initialStaticImageWidth) / totalInteractivePanelCount;
+
+                const collapsedInteractivePanelCount = totalInteractivePanelCount - 1;
+                const collapsedInteractivePanelWidth = (adContainerWidth - shortenedStaticImageWidth - expandedPanelWidth) / collapsedInteractivePanelCount;
+
+                staticDisplay.style.width = `${initialStaticImageWidth}px`;
+                panels.forEach(panel => {
+                    panel.style.width = `${initialInteractivePanelWidth}px`;
+                });
+
+                panels.forEach(panel => {
+                    panel.addEventListener('click', () => {
+                        document.querySelector('.ad-container').classList.add('icons-hidden');
+
+                        const isExpanded = panel.classList.contains('expanded');
+
+                        if (isExpanded) {
+                            staticDisplay.style.width = `${initialStaticImageWidth}px`;
+                            staticDisplay.classList.remove('is-shortened');
+                            panels.forEach(p => {
+                                p.classList.remove('expanded');
+                                p.style.width = `${initialInteractivePanelWidth}px`;
+                            });
+                        } else {
+                            staticDisplay.style.width = `${shortenedStaticImageWidth}px`;
+                            staticDisplay.classList.add('is-shortened');
+                            panels.forEach(p => {
+                                p.classList.remove('expanded');
+                                p.style.width = `${collapsedInteractivePanelWidth}px`;
+                            });
+
+                            panel.classList.add('expanded');
+                            panel.style.width = `${expandedPanelWidth}px`;
+                        }
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>
